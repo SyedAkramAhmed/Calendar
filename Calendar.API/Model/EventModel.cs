@@ -10,15 +10,14 @@ namespace Calendar.API.Model
     {
         [Key]
         public int Id { get; set; }
+        public int EventPID { get; set; }
         [Required]
         public string Title { get; set; }
         [Required]
         public string Description { get; set; }
         [Required]
-        [DataType(DataType.Date)]
         public DateTime StartDate { get; set; }
         [Required]
-        [DataType(DataType.Date)]
         public DateTime EndDate { get; set; }
         [EmailArrayRequiredValidation]
         public string[] RequiredAttendees { get; set; }
@@ -26,7 +25,8 @@ namespace Calendar.API.Model
         public string[] OptionalAttendees { get; set; }
         [Required]
         public bool AllDay { get; set; }
-
+        public string RecurrenceType { get; set; }
+        public long EventLength { get; set; }
         IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
         {
             if (EndDate < StartDate)

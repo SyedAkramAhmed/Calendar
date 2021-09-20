@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace Calendar.API.Controllers
@@ -20,6 +21,16 @@ namespace Calendar.API.Controllers
         public IEnumerable<EventModel> GetEvents()
         {
             return _eventDbContext.Events.ToList();
+        }
+        /// <summary>
+        /// Get Calendar Events By Start and End Date
+        /// </summary>
+        /// <returns>Filtered Calendar Events</returns>
+        [HttpGet("GetEventsByRange/{startDate}/{endDate}")]
+        public IActionResult GetEventsByRange([Required] DateTime StartDate, [Required] DateTime EndDate)
+        {
+            if (EndDate < StartDate) return BadRequest("End Date must be greater than Start Date");
+            return Ok(_eventDbContext.Events.Where(e => e.StartDate < StartDate && e.EndDate >= EndDate).ToList().Select(e => e));
         }
         /// <summary>
         /// Get Calendar Event By Id
@@ -58,6 +69,13 @@ namespace Calendar.API.Controllers
                 eventDetails.RequiredAttendees = model.RequiredAttendees;
                 eventDetails.OptionalAttendees = model.OptionalAttendees;
                 eventDetails.AllDay = model.AllDay;
+                eventDetails.EventPID = model.EventPID;
+                eventDetails.RecurrenceType = model.RecurrenceType;
+                eventDetails.EventLength = model.EventLength;
+                if (!string.IsNullOrEmpty(eventDetails.RecurrenceType) && eventDetails.RecurrenceType != "none")
+                {
+                    _eventDbContext.Events.RemoveRange(_eventDbContext.Events.Where(ev => ev.EventPID == model.EventPID));
+                }
             }
             _eventDbContext.SaveChanges();
             return eventDetails != null ? Ok(new { Message = "The event updated successfully." }) : Created("GetEventById", new { id = model.Id });
@@ -72,6 +90,10 @@ namespace Calendar.API.Controllers
         {
             var eventDetails = _eventDbContext.Events.FirstOrDefault(x => x.Id == id);
             if (eventDetails == null) return NotFound();
+            if (!string.IsNullOrEmpty(eventDetails.RecurrenceType) && eventDetails.RecurrenceType != "none")
+            {
+                _eventDbContext.Events.RemoveRange(_eventDbContext.Events.Where(ev => ev.EventPID == id));
+            }
             _eventDbContext.Events.Remove(eventDetails);
             _eventDbContext.SaveChanges();
             return Ok(new { Message = "The event deleted successfully." });
