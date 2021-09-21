@@ -14,3 +14,5 @@ Delete Event,
 **Approach**: Code First Approach
 
 **Database**: MSSQL
+
+**PostMan Documentation:** https://www.getpostman.com/collections/d38bbe04f79a6b569ace
